@@ -1,0 +1,56 @@
+plugins {
+     id 'com.android.application'
+}
+
+android {
+    namespace "@@@package_dotted@@@"
+    compileSdkVersion 36
+    defaultConfig {
+        minSdkVersion 24
+        targetSdkVersion 36
+        versionCode 1000
+        versionName "1.00.0"
+		externalNativeBuild {
+			cmake {
+				arguments "-DANDROID_PLATFORM=android-24", "-DANDROID_STL=c++_static"
+				abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
+			}
+		}
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    applicationVariants.all { variant ->
+        tasks["merge${variant.name.capitalize()}Assets"]
+            .dependsOn("externalNativeBuild${variant.name.capitalize()}")
+    }
+    if (!project.hasProperty('EXCLUDE_NATIVE_LIBS')) {
+        sourceSets.main {
+            jniLibs.srcDir 'libs'
+        }
+        externalNativeBuild {
+            cmake {
+                path 'jni/CMakeLists.txt'
+            }
+        }
+
+    }
+    lint {
+        abortOnError false
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "androidx.core:core-ktx:1.17.0"
+
+    // AdMob (and ump for the privacy messages):
+    //@@@USE_ADMOB@@@implementation 'com.google.android.gms:play-services-ads:23.1.0'
+    //@@@USE_ADMOB@@@implementation 'com.google.android.ump:user-messaging-platform:2.2.0'
+
+    // play store billing:
+    //@@@USE_BILLING@@@implementation "com.android.billingclient:billing:7.0.0"
+}
